@@ -46,9 +46,10 @@ class DataChunk:
             t_embeddings, axis=-1, keepdims=True
         )
 
-        raise NotImplementedError("Load text embeddings")
-        self.embeddings /= np.linalg.norm(
-            self.embeddings, axis=-1, keepdims=True
+        with Path(text_embeddings).open('br') as reader:
+            s_embeddings = np.load(reader)
+        self.s_embeddings /= np.linalg.norm(
+            self.s_embeddings, axis=-1, keepdims=True
         )
 
         raise NotImplementedError("Populate sentences list!")
