@@ -60,6 +60,7 @@ class DataChunk:
             for text in doc.sentences:
                 raise NotImplementedError("Create sentence list!")
                 # Add title embeddings to embeddings
+                title = doc['title']
                 self.embeddings
                 # Add a Sentence to list!
                 self.sentences.append(
