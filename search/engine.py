@@ -40,9 +40,10 @@ class DataChunk:
         self.documents = [Document(**d) for d in documents]
         del documents
 
-        raise NotImplementedError("Load title embeddings")
-        title_embeddings /= np.linalg.norm(
-            title_embeddings, axis=-1, keepdims=True
+        with Path(title_embeddings).open('br') as reader:
+            t_embeddings = np.load(reader)
+        t_embeddings /= np.linalg.norm(
+            t_embeddings, axis=-1, keepdims=True
         )
 
         raise NotImplementedError("Load text embeddings")
