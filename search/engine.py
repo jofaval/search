@@ -33,7 +33,10 @@ class DataChunk:
         title_embeddings: Path,
         text_embeddings: Path,
     ):
-        raise NotImplementedError("Load documents")
+        documents = []
+
+        with open(doc_path, 'r') as doc_reader:
+            documents = json.load(doc)
         self.documents = [Document(**d) for d in documents]
         del documents
 
