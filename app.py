@@ -6,7 +6,7 @@ from typing import List
 import streamlit as st
 from sentence_transformers import SentenceTransformer
 
-from search.engine import Engine, Result
+from search.engine import Document, Engine, Result
 from search.model import load_minilm_model
 from search.utils import get_memory_usage
 
@@ -45,17 +45,42 @@ engine = load_engine()
 
 model = load_model()
 
-st.error("Create a text input for the query.")
+query = st.text_input(
+    label='Query',
+    value=''
+)
 
-st.error("Create a slider with the number of results to retrieve.")
+limit = st.slider(
+    label='Slider',
+    min_value=0,
+    max_value=100,
+    step=1
+)
 
 with st.spinner("Querying index ..."):
-    st.error("Get query embedding.")
-    st.error("Search results (engine.search).")
+    embedding = model.encode([query])[0]
+
+    results = engine.search(
+        embedding=embedding,
+        limit=limit
+    )
 
 # Show the results.
 # You can use st.markdown to render markdown.
 # e.g. st.markdown("**text**") will add text in bold font.
 
-st.error("Render results")
+def get_wikipedia_page(pageid: str) -> str:
+    return f'https://es.wikipedia.org/?curid={pageid}'
+
+def display(result: Result) -> None:
+    st.markdown(f"### {result.doc.title} ([link]({get_wikipedia_page(result.doc.pageid)}))")
+    st.write(result.sentence.text)
+    st.markdown(f"(**score**: {result.score})")
+    
+
+[
+    display(result)
+    for result in results
+]
+
 st.markdown(f"**Mem Usage**: {get_memory_usage()}MB")
