@@ -72,15 +72,34 @@ with st.spinner("Querying index ..."):
 def get_wikipedia_page(pageid: str) -> str:
     return f'https://es.wikipedia.org/?curid={pageid}'
 
-def display(result: Result) -> None:
-    st.markdown(f"### {result.doc.title} ([link]({get_wikipedia_page(result.doc.pageid)}))")
-    st.write(result.sentence.text)
-    st.markdown(f"(**score**: {result.score})")
+def display(result: dict) -> None:
+    st.markdown(f"### {result[0]['title']} ([link]({get_wikipedia_page(result[0]['pageid'])}))")
+    for details in result:
+        st.write(details['sentence'])
+        st.markdown(f"(**score**: {details['score']})")
     
 
-[
+def group_by_name(results: List[Result]) -> dict:
+    grouping = dict()
+
+    for result in results:
+        if result.doc.pageid not in grouping:
+            grouping[result.doc.pageid] = []
+
+        page_data = {
+            'title': result.doc.title,
+            'score': result.score,
+            'sentence': result.sentence.text,
+            'pageid':result.doc.pageid
+        }
+
+        grouping[result.doc.pageid].append(page_data)
+    
+    return grouping
+
+voider = [
     display(result)
-    for result in results
+    for pageid, result in group_by_name(results).items()
 ]
 
 st.markdown(f"**Mem Usage**: {get_memory_usage()}MB")
