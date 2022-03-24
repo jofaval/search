@@ -6,7 +6,6 @@ from typing import List, Optional
 import numpy as np
 from pydantic import BaseModel
 
-from search.utils import get_memory_usage
 
 
 class Document(BaseModel):
@@ -33,45 +32,38 @@ class DataChunk:
         title_embeddings: Path,
         text_embeddings: Path,
     ):
-        documents = []
+        with doc.open("rb") as reader:
+            self.documents = [Document(**d) for d in json.load(reader)]
 
-        with Path(doc).open('br') as doc_reader:
-            documents = json.load(doc_reader)
-        self.documents = [Document(**d) for d in documents]
-        del documents
+        with title_embeddings.open("rb") as reader:
+            title_embeddings = np.load(reader)
+            title_embeddings /= np.linalg.norm(
+                title_embeddings, axis=-1, keepdims=True
+            )
 
-        with Path(title_embeddings).open('br') as reader:
-            t_embeddings = np.load(reader)
-        t_embeddings /= np.linalg.norm(
-            t_embeddings, axis=-1, keepdims=True
-        )
+        with text_embeddings.open("rb") as reader:
+            self.embeddings = np.load(reader)
+            self.embeddings /= np.linalg.norm(
+                self.embeddings, axis=-1, keepdims=True
+            )
 
-        with Path(text_embeddings).open('br') as reader:
-            self.s_embeddings = np.load(reader)
-        self.s_embeddings /= np.linalg.norm(
-            self.s_embeddings, axis=-1, keepdims=True
-        )
-
-        raise NotImplementedError("Populate sentences list!")
-
-       
         self.sentences = []
         for doc_index, doc in enumerate(self.documents):
             for text in doc.sentences:
-                raise NotImplementedError("Create sentence list!")
-                # Add title embeddings to embeddings
-                title = doc['title']
-                self.embeddings
-                # Add a Sentence to list!
+                self.embeddings[len(self.sentences)] += title_embeddings[
+                    doc_index
+                ]
                 self.sentences.append(
+                    Sentence(
+                        doc_index=doc_index,
+                        text=text,
+                    )
                 )
 
     def search(self, embedding: np.ndarray, limit: int) -> List[Result]:
-        raise NotImplementedError("Scoring")
-        # Normalize embedding
-        # Compute dot product between embedding and self.embeddings
-        # Get indexes of the highest scoring sentences.
-        indexes = ...
+        embedding /= np.linalg.norm(embedding)
+        scores = np.inner(embedding, self.embeddings)
+        indexes = np.argsort(-scores)
         return [
             Result(
                 doc=self.documents[self.sentences[i].doc_index],
@@ -109,9 +101,6 @@ class Engine:
             # fmt: off
             index = doc_path.stem[doc_path.stem.find("_") + 1:]
             # fmt: on
-            print(
-                f"{datetime.now()} {index} mem usage: {get_memory_usage()} MB"
-            )
             self.chunks.append(
                 DataChunk(
                     doc=doc_path,
