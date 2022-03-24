@@ -35,8 +35,8 @@ class DataChunk:
     ):
         documents = []
 
-        with open(doc_path, 'r') as doc_reader:
-            documents = json.load(doc)
+        with Path(doc).open('br') as doc_reader:
+            documents = json.load(doc_reader)
         self.documents = [Document(**d) for d in documents]
         del documents
 
@@ -47,7 +47,7 @@ class DataChunk:
         )
 
         with Path(text_embeddings).open('br') as reader:
-            s_embeddings = np.load(reader)
+            self.s_embeddings = np.load(reader)
         self.s_embeddings /= np.linalg.norm(
             self.s_embeddings, axis=-1, keepdims=True
         )
