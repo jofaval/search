@@ -22,11 +22,15 @@ st.markdown(
 .big-font {
     font-size:20px;
 }
+
+.block-container
+{
+    background: hsl(272deg, 85%, 86%);
+}
 </style>
 """,
     unsafe_allow_html=True,
 )
-
 
 @st.cache(allow_output_mutation=True)
 def load_engine() -> Engine:
@@ -90,7 +94,7 @@ def group_by_name(results: List[Result]) -> dict:
             'title': result.doc.title,
             'score': result.score,
             'sentence': result.sentence.text,
-            'pageid':result.doc.pageid
+            'pageid': result.doc.pageid
         }
 
         grouping[result.doc.pageid].append(page_data)
